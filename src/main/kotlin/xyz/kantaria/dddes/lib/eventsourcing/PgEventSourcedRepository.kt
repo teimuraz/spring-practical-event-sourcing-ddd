@@ -5,14 +5,15 @@ import org.joda.time.DateTime
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.CrudRepository
 import javax.persistence.*
+import kotlin.reflect.full.createInstance
 
 abstract class PgEventSourcedRepository<T : AggregateRoot> : Repository<T> {
 
-    private val objectMapper = ObjectMapper()
-    abstract val eventPublisher: ApplicationEventPublisher
-    abstract val eventsJournalRepository: EventsJournalRepository
-    abstract val aggregateRootType: Int
-    abstract fun deserializeEvent(eventType: String, event: String): DomainEvent
+    abstract protected val objectMapper: ObjectMapper
+    abstract protected val eventPublisher: ApplicationEventPublisher
+    abstract protected val eventsJournalRepository: EventsJournalRepository
+    abstract protected val aggregateRootType: Int
+    abstract protected fun deserializeEvent(eventType: String, event: String): DomainEvent
 
     override fun save(aggregateRoot: AggregateRoot) {
         aggregateRoot.uncommittedEvents.forEach {
@@ -30,7 +31,7 @@ abstract class PgEventSourcedRepository<T : AggregateRoot> : Repository<T> {
     }
 
     override fun getById(id: Long): T? {
-        val aggregate = initialState
+        val aggregate = aggregateClass.createInstance()
         val eventModels = eventsJournalRepository.findByAggregateRootTypeAndAggregateRootIdOrderByEventOffset(aggregateRootType, id)
         val events = eventModels.map { model -> deserializeEvent(model.eventType, model.event) }
 
