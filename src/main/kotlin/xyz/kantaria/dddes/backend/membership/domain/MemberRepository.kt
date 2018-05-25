@@ -1,4 +1,4 @@
-package xyz.kantaria.dddes.membership.domain
+package xyz.kantaria.dddes.backend.membership.domain
 
 import xyz.kantaria.dddes.lib.eventsourcing.Repository
 

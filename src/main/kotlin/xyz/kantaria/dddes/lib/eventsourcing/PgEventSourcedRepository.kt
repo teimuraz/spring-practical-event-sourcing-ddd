@@ -1,6 +1,7 @@
 package xyz.kantaria.dddes.lib.eventsourcing
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.joda.JodaModule
 import org.joda.time.DateTime
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.repository.CrudRepository
@@ -9,11 +10,11 @@ import kotlin.reflect.full.createInstance
 
 abstract class PgEventSourcedRepository<T : AggregateRoot> : Repository<T> {
 
-    abstract protected val objectMapper: ObjectMapper
-    abstract protected val eventPublisher: ApplicationEventPublisher
-    abstract protected val eventsJournalRepository: EventsJournalRepository
-    abstract protected val aggregateRootType: Int
-    abstract protected fun deserializeEvent(eventType: String, event: String): DomainEvent
+    protected abstract val objectMapper: ObjectMapper
+    protected abstract val eventPublisher: ApplicationEventPublisher
+    protected abstract val eventsJournalRepository: EventsJournalRepository
+    protected abstract val aggregateRootType: Int
+    protected abstract fun deserializeEvent(eventType: String, event: String): DomainEvent
 
     override fun save(aggregateRoot: AggregateRoot) {
         aggregateRoot.uncommittedEvents.forEach {
@@ -30,7 +31,7 @@ abstract class PgEventSourcedRepository<T : AggregateRoot> : Repository<T> {
         aggregateRoot.uncommittedEvents.clear()
     }
 
-    override fun getById(id: Long): T? {
+    override fun findById(id: Long): T? {
         val aggregate = aggregateClass.createInstance()
         val eventModels = eventsJournalRepository.findByAggregateRootTypeAndAggregateRootIdOrderByEventOffset(aggregateRootType, id)
         val events = eventModels.map { model -> deserializeEvent(model.eventType, model.event) }

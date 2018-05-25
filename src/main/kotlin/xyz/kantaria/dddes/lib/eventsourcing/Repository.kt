@@ -4,6 +4,7 @@ import kotlin.reflect.KClass
 
 interface Repository<T : AggregateRoot> {
     fun save(aggregateRoot: AggregateRoot)
-    fun getById(id: Long): T?
+    fun findById(id: Long): T?
+    fun nextId(): Long
     val aggregateClass: KClass<T>
 }

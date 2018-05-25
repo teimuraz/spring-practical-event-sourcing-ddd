@@ -15,7 +15,7 @@ data class EventLogDescriptor(val aggregateType: String, val event: DomainEvent)
 //        println(eventLog)
 //    }
 //
-//    override fun getById(id: Long): T? {
+//    override fun findById(id: Long): T? {
 //        val aggregate = initialState
 //
 //        val events = eventLog

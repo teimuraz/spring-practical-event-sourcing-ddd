@@ -1,4 +1,4 @@
-package xyz.kantaria.dddes.membership.domain
+package xyz.kantaria.dddes.backend.membership.domain
 
 import org.joda.time.DateTime
 import xyz.kantaria.dddes.lib.error.ForbiddenException
@@ -19,13 +19,16 @@ class Member : AggregateRoot {
     var role: MemberRole = MemberRole.STANDARD_MEMBER
         private set
 
+    var organizationId: Long = 0
+        private set
+
     var becameMemberAt: DateTime = DateTime.now()
         private set
 
-    protected constructor()
+    constructor()
 
-    constructor(id: Long, name: String, email: String, role: MemberRole, becameMemberAt: DateTime) {
-        applyChange(MemberCreated(id, name, email, role, becameMemberAt))
+    constructor(id: Long, name: String, email: String, role: MemberRole, organizationId: Long, becameMemberAt: DateTime) {
+        applyChange(MemberCreated(id, name, email, role, organizationId, becameMemberAt))
     }
 
     fun changeName(newName: String) {
@@ -34,6 +37,14 @@ class Member : AggregateRoot {
 
     fun changeEmail(newEmail: String) {
         applyChange(MemberEmailChanged(id, newEmail))
+    }
+
+    fun createNewMember(newMemberId: Long, name: String, email: String): Member {
+        if (role != MemberRole.OWNER) {
+            throw ForbiddenException("Only owner can create new members")
+        }
+
+        return Member(newMemberId, name, email, MemberRole.STANDARD_MEMBER, organizationId, DateTime.now())
     }
 
     fun becomeAnOwner(initiator: Member) {
@@ -83,14 +94,14 @@ class Member : AggregateRoot {
     }
 }
 
-data class MemberRole(val value: Int) {
+data class MemberRole(val value: Int = 1) {
     companion object {
         val STANDARD_MEMBER = MemberRole(1)
         val OWNER = MemberRole(2)
     }
 }
 
-data class MemberCreated(override val id: Long, val name: String, val email: String, val role: MemberRole, val becameMemberAt: DateTime) : DomainEvent
+data class MemberCreated(override val id: Long, val name: String, val email: String, val role: MemberRole, val organizationId: Long, val becameMemberAt: DateTime) : DomainEvent
 data class MemberNameChanged(override val id: Long, val name: String) : DomainEvent
 data class MemberEmailChanged(override val id: Long, val email: String) : DomainEvent
 data class MemberBecameAnOwner(override val id: Long, val role: MemberRole) : DomainEvent
