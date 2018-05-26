@@ -6,17 +6,20 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
-import xyz.kantaria.dddes.backend.membership.domain.Member
-import xyz.kantaria.dddes.backend.membership.domain.MemberRepository
-import xyz.kantaria.dddes.backend.membership.domain.MemberRole
+import org.springframework.transaction.annotation.Transactional
+import xyz.kantaria.dddes.backend.membership.domain.*
 import java.util.logging.Logger
 
 @Component
-class Seeder @Autowired constructor(private val memberRepository: MemberRepository) {
+class Seeder @Autowired constructor(
+        private val memberRepository: MemberRepository,
+        private val organizationRepository: OrganizationRepository
+) {
 
     private val log = LoggerFactory.getLogger(Seeder::class.java)
 
     @EventListener(ApplicationReadyEvent::class)
+    @Transactional
     fun doSomethingAfterStartup() {
         val existingMember = memberRepository.findById(1)
         if (existingMember == null) {
@@ -24,6 +27,12 @@ class Seeder @Autowired constructor(private val memberRepository: MemberReposito
             log.info("Seeding member $member")
             memberRepository.save(member)
         }
-    }
 
+        val existingOrganization = organizationRepository.findById(1)
+        if (existingOrganization == null) {
+            val organization = Organization(1, "Acme")
+            log.info("Seeding organization $organization")
+            organizationRepository.save(organization)
+        }
+    }
 }

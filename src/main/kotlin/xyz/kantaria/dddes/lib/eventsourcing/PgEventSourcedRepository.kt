@@ -32,7 +32,7 @@ abstract class PgEventSourcedRepository<T : AggregateRoot> : Repository<T> {
     }
 
     override fun findById(id: Long): T? {
-        val aggregate = aggregateClass.createInstance()
+        val aggregate = aggregateRootClass.createInstance()
         val eventModels = eventsJournalRepository.findByAggregateRootTypeAndAggregateRootIdOrderByEventOffset(aggregateRootType, id)
         val events = eventModels.map { model -> deserializeEvent(model.eventType, model.event) }
 

@@ -6,5 +6,5 @@ interface Repository<T : AggregateRoot> {
     fun save(aggregateRoot: AggregateRoot)
     fun findById(id: Long): T?
     fun nextId(): Long
-    val aggregateClass: KClass<T>
+    val aggregateRootClass: KClass<T>
 }

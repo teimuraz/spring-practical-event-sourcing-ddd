@@ -5,28 +5,26 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Repository
 import xyz.kantaria.dddes.backend.common.AggregateTypeRegistry
+import xyz.kantaria.dddes.backend.membership.domain.*
 import xyz.kantaria.dddes.lib.error.InternalErrorException
 import xyz.kantaria.dddes.lib.eventsourcing.DomainEvent
 import xyz.kantaria.dddes.lib.eventsourcing.EventsJournalRepository
 import xyz.kantaria.dddes.lib.eventsourcing.PgEventSourcedRepository
-import xyz.kantaria.dddes.backend.membership.domain.Member
-import xyz.kantaria.dddes.backend.membership.domain.MemberCreated
-import xyz.kantaria.dddes.backend.membership.domain.MemberRepository
 
 @Repository
-class EventSourcedMemberRepository @Autowired constructor(
+class EventSourcedOrganizationRepository @Autowired constructor(
         override val eventsJournalRepository: EventsJournalRepository,
         override val eventPublisher: ApplicationEventPublisher,
         override val objectMapper: ObjectMapper)
-    : MemberRepository,  PgEventSourcedRepository<Member>() {
+    : OrganizationRepository,  PgEventSourcedRepository<Organization>() {
 
-    override val aggregateRootClass = Member::class
+    override val aggregateRootClass = Organization::class
 
-    override val aggregateRootType = AggregateTypeRegistry.MEMBERSHIP_MEMBER
+    override val aggregateRootType = AggregateTypeRegistry.MEMBERSHIP_ORGANIZATION
 
     override fun deserializeEvent(eventType: String, event: String): DomainEvent {
         return when (eventType) {
-            "memberCreated" -> objectMapper.readValue(event, MemberCreated::class.java)
+            "organizationCreated" -> objectMapper.readValue(event, OrganizationCreated::class.java)
             else -> throw InternalErrorException("Unsupported event type $eventType")
         }
     }

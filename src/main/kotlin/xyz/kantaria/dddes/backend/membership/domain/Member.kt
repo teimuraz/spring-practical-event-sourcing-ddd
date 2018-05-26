@@ -70,6 +70,22 @@ class Member : AggregateRoot {
         applyChange(MemberBecameAStandardMember(id, MemberRole.STANDARD_MEMBER))
     }
 
+    fun disconnect(initiator: Member) {
+        if (initiator.role != MemberRole.OWNER) {
+            throw ForbiddenException("Only owner can disconnect another member")
+        }
+
+        if (initiator.id == id) {
+            throw ForbiddenException("Member cannot disconnect itself")
+        }
+
+        if (role == MemberRole.FORMER_MEMBER) {
+            throw ForbiddenException("Member is already disconnected")
+        }
+
+        applyChange(MemberDisconnected(id, MemberRole.FORMER_MEMBER))
+    }
+
     override fun applyEvent(event: DomainEvent) {
         when (event) {
             is MemberCreated -> {
@@ -94,10 +110,11 @@ class Member : AggregateRoot {
     }
 }
 
-data class MemberRole(val value: Int = 1) {
+data class MemberRole(val value: Int = 0) {
     companion object {
         val STANDARD_MEMBER = MemberRole(1)
-        val OWNER = MemberRole(2)
+        val FORMER_MEMBER = MemberRole(99)
+        val OWNER = MemberRole(100)
     }
 }
 
@@ -106,4 +123,5 @@ data class MemberNameChanged(override val id: Long, val name: String) : DomainEv
 data class MemberEmailChanged(override val id: Long, val email: String) : DomainEvent
 data class MemberBecameAnOwner(override val id: Long, val role: MemberRole) : DomainEvent
 data class MemberBecameAStandardMember(override val id: Long, val role: MemberRole) : DomainEvent
+data class MemberDisconnected(override val id: Long, val role: MemberRole) : DomainEvent
 
